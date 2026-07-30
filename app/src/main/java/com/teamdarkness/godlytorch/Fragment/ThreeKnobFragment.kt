@@ -18,17 +18,21 @@
 package com.teamdarkness.godlytorch.Fragment
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.Color
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.widget.ImageViewCompat
@@ -74,14 +78,18 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     private var masterProgress = 1
 
     private var flashMode = "rear"
-    private var frontFlashOverlay: View? = null
-    private var savedBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+    private var cameraManager: CameraManager? = null
+    private var frontFlashCameraId: String? = null
+    private var frontFlashChecked = false
+    private var frontFlashOn = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         val prefs = context?.defaultSharedPreferences
         val useKnobsUi = prefs?.getBoolean(PREF_KNOBS_UI, false) ?: false
+
+        cameraManager = context?.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
 
         // Inflate the layout for this fragment
         val layoutRes = if (useKnobsUi) R.layout.fragment_three_knob_classic else R.layout.fragment_three_knob
@@ -420,12 +428,11 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
 
     private fun controlLed(whiteLed: Int = 0, yellowLed: Int = 0, torchState: Boolean = false) {
         if (flashMode == "front") {
-            // Front cameras don't have a physical LED, so the screen itself is used as the light source
             setFrontFlashActive(torchState)
             return
         }
 
-        // make sure the front flash overlay is off before driving the rear LED
+        // make sure the front flash is off before driving the rear LED
         setFrontFlashActive(false)
 
         if (whiteLedFileLocation.isEmpty() || yellowLedFileLocation.isEmpty() || toggleFileLocation.isEmpty())
@@ -443,48 +450,77 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     }
 
     /**
-     * Turns the "front flash" on or off by lighting up the whole screen at full
-     * brightness, the same trick selfie-flash camera apps use since front cameras
-     * don't have a physical LED next to the lens.
+     * Finds the ID of the front-facing camera that actually has a flash unit attached
+     * (only present on a handful of devices). Result is cached after the first lookup.
      */
+    private fun getFrontFlashCameraId(): String? {
+        if (frontFlashChecked) return frontFlashCameraId
+        frontFlashChecked = true
+
+        val manager = cameraManager ?: return null
+        try {
+            for (id in manager.cameraIdList) {
+                val characteristics = manager.getCameraCharacteristics(id)
+                val facingFront = characteristics.get(CameraCharacteristics.LENS_FACING) ==
+                        CameraCharacteristics.LENS_FACING_FRONT
+                val hasFlash = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+                if (facingFront && hasFlash) {
+                    frontFlashCameraId = id
+                    break
+                }
+            }
+        } catch (e: CameraAccessException) {
+            frontFlashCameraId = null
+        }
+        return frontFlashCameraId
+    }
+
+    /** Turns the phone's real front-facing LED flash on or off. */
     private fun setFrontFlashActive(active: Boolean) {
-        val window = activity?.window ?: return
+        val ctx = context ?: return
+        val manager = cameraManager ?: return
 
-        if (active) {
-            if (frontFlashOverlay == null) {
-                val overlay = FrameLayout(requireContext())
-                overlay.setBackgroundColor(Color.WHITE)
-                window.addContentView(
-                    overlay,
-                    ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                )
-                overlay.bringToFront()
-                frontFlashOverlay = overlay
+        if (ActivityCompat.checkSelfPermission(ctx, android.Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (active) {
+                requestPermissions(arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
             }
+            return
+        }
 
-            val layoutParams = window.attributes
-            savedBrightness = layoutParams.screenBrightness
-            layoutParams.screenBrightness = 1.0f
-            window.attributes = layoutParams
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        } else {
-            frontFlashOverlay?.let {
-                (it.parent as? ViewGroup)?.removeView(it)
+        val id = getFrontFlashCameraId()
+        if (id == null) {
+            if (active) {
+                Toast.makeText(ctx, "This device has no front flash", Toast.LENGTH_SHORT).show()
             }
-            frontFlashOverlay = null
+            return
+        }
 
-            val layoutParams = window.attributes
-            layoutParams.screenBrightness = savedBrightness
-            window.attributes = layoutParams
-            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        try {
+            manager.setTorchMode(id, active)
+            frontFlashOn = active
+        } catch (e: CameraAccessException) {
+            frontFlashOn = false
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE &&
+                grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                flashMode == "front") {
+            setFrontFlashActive(true)
+        }
+    }
+
+    companion object {
+        private const val CAMERA_PERMISSION_REQUEST_CODE = 4242
+    }
+
     override fun onDestroyView() {
-        setFrontFlashActive(false)
+        if (frontFlashOn) setFrontFlashActive(false)
         super.onDestroyView()
     }
 

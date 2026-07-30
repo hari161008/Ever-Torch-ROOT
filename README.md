@@ -1,5 +1,5 @@
-# Ever Torch
-Godly Torch Torch app that can manage specific LEDs of flash and control intensity.
+# Ever Torch ROOT
+Ever Torch ROOT app that can manage specific LEDs of flash and control intensity.
 
 **NEEDS ROOT !**
 
