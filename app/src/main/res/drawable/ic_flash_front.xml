@@ -3,5 +3,20 @@
     android:width="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path android:fillColor="#fff" android:pathData="M9,2L9,4L4,4L4,20L20,20L20,4L15,4L15,2L9,2zM12,7c2.49,0 4.5,2.01 4.5,4.5S14.49,16 12,16s-4.5,-2.01 -4.5,-4.5S9.51,7 12,7z" />
+    <!--
+        Front flash icon: a phone seen from the front with a fully lit screen,
+        representing the screen-as-flash used for selfies, plus the earpiece
+        speaker slot and front camera dot near the top.
+    -->
+    <path
+        android:fillColor="#fff"
+        android:fillType="evenOdd"
+        android:pathData="
+            M7.4,2 H16.6 A2.4,2.4 0 0 1 19,4.4 V19.6 A2.4,2.4 0 0 1 16.6,22 H7.4
+            A2.4,2.4 0 0 1 5,19.6 V4.4 A2.4,2.4 0 0 1 7.4,2 Z
+
+            M10.35,3.6 H13.65 A0.35,0.35 0 0 1 14,3.95 A0.35,0.35 0 0 1 13.65,4.3 H10.35
+            A0.35,0.35 0 0 1 10,3.95 A0.35,0.35 0 0 1 10.35,3.6 Z
+
+            M16.75,3.95 A0.55,0.55 0 1 1 15.65,3.95 A0.55,0.55 0 1 1 16.75,3.95 Z" />
 </vector>

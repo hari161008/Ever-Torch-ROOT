@@ -20,12 +20,15 @@ package com.teamdarkness.godlytorch.Fragment
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.widget.ImageViewCompat
@@ -69,6 +72,10 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     private var yellowProgress = 1
     private var whiteProgress = 1
     private var masterProgress = 1
+
+    private var flashMode = "rear"
+    private var frontFlashOverlay: View? = null
+    private var savedBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -127,15 +134,21 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
             }
         }
 
-        val currentMode = prefs?.getString(PREF_FLASH_MODE, "rear") ?: "rear"
-        refreshIcons(currentMode)
+        flashMode = prefs?.getString(PREF_FLASH_MODE, "rear") ?: "rear"
+        refreshIcons(flashMode)
 
         rearFlashButton.setOnClickListener {
+            if (flashMode != "rear") {
+                // switching away from front flash, make sure the screen overlay is cleared
+                setFrontFlashActive(false)
+            }
+            flashMode = "rear"
             prefs?.edit()?.putString(PREF_FLASH_MODE, "rear")?.apply()
             refreshIcons("rear")
         }
 
         frontFlashButton.setOnClickListener {
+            flashMode = "front"
             prefs?.edit()?.putString(PREF_FLASH_MODE, "front")?.apply()
             refreshIcons("front")
         }
@@ -406,6 +419,15 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     }
 
     private fun controlLed(whiteLed: Int = 0, yellowLed: Int = 0, torchState: Boolean = false) {
+        if (flashMode == "front") {
+            // Front cameras don't have a physical LED, so the screen itself is used as the light source
+            setFrontFlashActive(torchState)
+            return
+        }
+
+        // make sure the front flash overlay is off before driving the rear LED
+        setFrontFlashActive(false)
+
         if (whiteLedFileLocation.isEmpty() || yellowLedFileLocation.isEmpty() || toggleFileLocation.isEmpty())
             return
         var torch = 0
@@ -418,6 +440,52 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                 String.format(getString(R.string.cmd_echo), yellowLed, yellowLedFileLocation) +
                 String.format(getString(R.string.cmd_echo), torch, toggleFileLocation)
         return Utils.runCommand(command)
+    }
+
+    /**
+     * Turns the "front flash" on or off by lighting up the whole screen at full
+     * brightness, the same trick selfie-flash camera apps use since front cameras
+     * don't have a physical LED next to the lens.
+     */
+    private fun setFrontFlashActive(active: Boolean) {
+        val window = activity?.window ?: return
+
+        if (active) {
+            if (frontFlashOverlay == null) {
+                val overlay = FrameLayout(requireContext())
+                overlay.setBackgroundColor(Color.WHITE)
+                window.addContentView(
+                    overlay,
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                )
+                overlay.bringToFront()
+                frontFlashOverlay = overlay
+            }
+
+            val layoutParams = window.attributes
+            savedBrightness = layoutParams.screenBrightness
+            layoutParams.screenBrightness = 1.0f
+            window.attributes = layoutParams
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            frontFlashOverlay?.let {
+                (it.parent as? ViewGroup)?.removeView(it)
+            }
+            frontFlashOverlay = null
+
+            val layoutParams = window.attributes
+            layoutParams.screenBrightness = savedBrightness
+            window.attributes = layoutParams
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    override fun onDestroyView() {
+        setFrontFlashActive(false)
+        super.onDestroyView()
     }
 
     override fun onBackPressed() {
