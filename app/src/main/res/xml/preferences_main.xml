@@ -62,6 +62,30 @@
         </ListPreference>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Front Flash (root)" >
+        <EditTextPreference
+            android:title="Front white LED file"
+            android:summary="Sysfs brightness file for the front white LED"
+            android:key="frontWhiteLedFileLocation"
+            android:dialogTitle="Front white LED file"/>
+        <EditTextPreference
+            android:title="Front yellow LED file"
+            android:summary="Sysfs brightness file for the front yellow LED"
+            android:key="frontYellowLedFileLocation"
+            android:dialogTitle="Front yellow LED file"/>
+        <EditTextPreference
+            android:title="Front toggle file"
+            android:summary="Sysfs switch/brightness file that enables the front flash"
+            android:key="frontToggleFileLocation"
+            android:dialogTitle="Front toggle file"/>
+        <EditTextPreference
+            android:title="Front max brightness"
+            android:summary="Maximum brightness value accepted by the front LED files"
+            android:key="frontBrightnessMax"
+            android:inputType="number"
+            android:dialogTitle="Front max brightness"/>
+    </PreferenceCategory>
+
     <!--<PreferenceCategory android:title="Camera Assistant (Coming soon)" >
         <SwitchPreference
             android:enabled="false"

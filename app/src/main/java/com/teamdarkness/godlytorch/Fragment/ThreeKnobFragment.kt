@@ -18,17 +18,10 @@
 package com.teamdarkness.godlytorch.Fragment
 
 import android.app.ProgressDialog
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -44,6 +37,10 @@ import com.teamdarkness.godlytorch.R
 import com.teamdarkness.godlytorch.Settings.SettingsActivity
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_DOUBLE_TONE_ENABLED
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FLASH_MODE
+import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_BRIGHTNESS_MAX
+import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_TOGGLE_FILE_LOCATION
+import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_WHITE_FILE_LOCATION
+import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_YELLOW_FILE_LOCATION
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_KNOBS_UI
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_WHITE_FILE_LOCATION
@@ -71,25 +68,25 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     private var whiteLedFileLocation = ""
     private var yellowLedFileLocation = ""
     private var toggleFileLocation = ""
-    private var brightnessMax = 0
+    private var rearBrightnessMax = 0
+
+    private var frontWhiteLedFileLocation = ""
+    private var frontYellowLedFileLocation = ""
+    private var frontToggleFileLocation = ""
+    private var frontBrightnessMax = 0
 
     private var yellowProgress = 1
     private var whiteProgress = 1
     private var masterProgress = 1
 
     private var flashMode = "rear"
-    private var cameraManager: CameraManager? = null
-    private var frontFlashCameraId: String? = null
-    private var frontFlashChecked = false
-    private var frontFlashOn = false
+    private var brightnessMax = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         val prefs = context?.defaultSharedPreferences
         val useKnobsUi = prefs?.getBoolean(PREF_KNOBS_UI, false) ?: false
-
-        cameraManager = context?.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
 
         // Inflate the layout for this fragment
         val layoutRes = if (useKnobsUi) R.layout.fragment_three_knob_classic else R.layout.fragment_three_knob
@@ -100,15 +97,19 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         val frontFlashButton: ImageButton = view.findViewById(R.id.frontFlashButton)
 
         prefs?.let {
-            // get torch file location
+            // get rear torch file locations
             whiteLedFileLocation = prefs.getString(PREF_WHITE_FILE_LOCATION, null) ?: ""
             yellowLedFileLocation = prefs.getString(PREF_YELLOW_FILE_LOCATION, null) ?: ""
             toggleFileLocation = prefs.getString(PREF_TOGGLE_FILE_LOCATION, null) ?: ""
+            rearBrightnessMax = prefs.getInt("brightnessMax", 0)
+
+            // get front torch file locations (root level, same mechanism as the rear LED)
+            frontWhiteLedFileLocation = prefs.getString(PREF_FRONT_WHITE_FILE_LOCATION, null) ?: ""
+            frontYellowLedFileLocation = prefs.getString(PREF_FRONT_YELLOW_FILE_LOCATION, null) ?: ""
+            frontToggleFileLocation = prefs.getString(PREF_FRONT_TOGGLE_FILE_LOCATION, null) ?: ""
+            frontBrightnessMax = prefs.getString(PREF_FRONT_BRIGHTNESS_MAX, null)?.toIntOrNull() ?: 0
 
             doubleTapEnabled = prefs.getBoolean(PREF_DOUBLE_TONE_ENABLED, true)
-
-            // get max brightness
-            brightnessMax = prefs.getInt("brightnessMax", 0)
         }
 
         settingsButton.setOnClickListener {
@@ -117,6 +118,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         }
 
         setupFlashModeButtons(rearFlashButton, frontFlashButton)
+        brightnessMax = if (flashMode == "front") frontBrightnessMax else rearBrightnessMax
 
         if (useKnobsUi) {
             setupClassicKnobs(view)
@@ -146,17 +148,17 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         refreshIcons(flashMode)
 
         rearFlashButton.setOnClickListener {
-            if (flashMode != "rear") {
-                // switching away from front flash, make sure the screen overlay is cleared
-                setFrontFlashActive(false)
-            }
+            controlLed(0, 0, false)
             flashMode = "rear"
+            brightnessMax = rearBrightnessMax
             prefs?.edit()?.putString(PREF_FLASH_MODE, "rear")?.apply()
             refreshIcons("rear")
         }
 
         frontFlashButton.setOnClickListener {
+            controlLed(0, 0, false)
             flashMode = "front"
+            brightnessMax = frontBrightnessMax
             prefs?.edit()?.putString(PREF_FLASH_MODE, "front")?.apply()
             refreshIcons("front")
         }
@@ -196,7 +198,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         masterSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) {
-                if (whiteValue != whiteValueOld || yellowValue != yellowValueOld) {
+                if (flashMode == "front" || whiteValue != whiteValueOld || yellowValue != yellowValueOld) {
                     if (yellowOn)
                         controlLed(whiteValue, yellowValue, true)
                     else
@@ -229,7 +231,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         whiteSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) {
-                if (whiteValue != whiteValueOld) {
+                if (flashMode == "front" || whiteValue != whiteValueOld) {
                     when {
                         whiteOn || yellowOn -> controlLed(whiteValue, yellowValue, true)
                         else -> controlLed(whiteValue, yellowValue, false)
@@ -261,7 +263,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         yellowSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) {
-                if (yellowValue != yellowValueOld) {
+                if (flashMode == "front" || yellowValue != yellowValueOld) {
                     when {
                         yellowOn || whiteOn -> controlLed(whiteValue, yellowValue, true)
                         else -> controlLed(whiteValue, yellowValue, false)
@@ -322,7 +324,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
             }
 
             override fun onStopTrackingTouch(croller: Croller?) {
-                if (whiteValue != whiteValueOld || yellowValue != yellowValueOld) {
+                if (flashMode == "front" || whiteValue != whiteValueOld || yellowValue != yellowValueOld) {
                     if (yellowOn)
                         controlLed(whiteValue, yellowValue, true)
                     else
@@ -369,7 +371,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
             }
 
             override fun onStopTrackingTouch(croller: Croller?) {
-                if (whiteValue != whiteValueOld) {
+                if (flashMode == "front" || whiteValue != whiteValueOld) {
                     when {
                         whiteOn || yellowOn -> controlLed(whiteValue, yellowValue, true)
                         else -> controlLed(whiteValue, yellowValue, false)
@@ -415,7 +417,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
             }
 
             override fun onStopTrackingTouch(croller: Croller?) {
-                if (yellowValue != yellowValueOld) {
+                if (flashMode == "front" || yellowValue != yellowValueOld) {
                     when {
                         yellowOn || whiteOn -> controlLed(whiteValue, yellowValue, true)
                         else -> controlLed(whiteValue, yellowValue, false)
@@ -427,101 +429,36 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
     }
 
     private fun controlLed(whiteLed: Int = 0, yellowLed: Int = 0, torchState: Boolean = false) {
+        val whiteFile: String
+        val yellowFile: String
+        val toggleFile: String
+        val maxBrightness: Int
+
         if (flashMode == "front") {
-            setFrontFlashActive(torchState)
-            return
+            whiteFile = frontWhiteLedFileLocation
+            yellowFile = frontYellowLedFileLocation
+            toggleFile = frontToggleFileLocation
+            maxBrightness = frontBrightnessMax
+        } else {
+            whiteFile = whiteLedFileLocation
+            yellowFile = yellowLedFileLocation
+            toggleFile = toggleFileLocation
+            maxBrightness = rearBrightnessMax
         }
 
-        // make sure the front flash is off before driving the rear LED
-        setFrontFlashActive(false)
-
-        if (whiteLedFileLocation.isEmpty() || yellowLedFileLocation.isEmpty() || toggleFileLocation.isEmpty())
+        if (whiteFile.isEmpty() || yellowFile.isEmpty() || toggleFile.isEmpty())
             return
+
         var torch = 0
         if (torchState)
-            torch = this.brightnessMax
+            torch = maxBrightness
 
-        val command: String = String.format(getString(R.string.cmd_echo), "0", toggleFileLocation) +
+        val command: String = String.format(getString(R.string.cmd_echo), "0", toggleFile) +
                 getString(R.string.cmd_sleep) +
-                String.format(getString(R.string.cmd_echo), whiteLed, whiteLedFileLocation) +
-                String.format(getString(R.string.cmd_echo), yellowLed, yellowLedFileLocation) +
-                String.format(getString(R.string.cmd_echo), torch, toggleFileLocation)
+                String.format(getString(R.string.cmd_echo), whiteLed, whiteFile) +
+                String.format(getString(R.string.cmd_echo), yellowLed, yellowFile) +
+                String.format(getString(R.string.cmd_echo), torch, toggleFile)
         return Utils.runCommand(command)
-    }
-
-    /**
-     * Finds the ID of the front-facing camera that actually has a flash unit attached
-     * (only present on a handful of devices). Result is cached after the first lookup.
-     */
-    private fun getFrontFlashCameraId(): String? {
-        if (frontFlashChecked) return frontFlashCameraId
-        frontFlashChecked = true
-
-        val manager = cameraManager ?: return null
-        try {
-            for (id in manager.cameraIdList) {
-                val characteristics = manager.getCameraCharacteristics(id)
-                val facingFront = characteristics.get(CameraCharacteristics.LENS_FACING) ==
-                        CameraCharacteristics.LENS_FACING_FRONT
-                val hasFlash = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-                if (facingFront && hasFlash) {
-                    frontFlashCameraId = id
-                    break
-                }
-            }
-        } catch (e: CameraAccessException) {
-            frontFlashCameraId = null
-        }
-        return frontFlashCameraId
-    }
-
-    /** Turns the phone's real front-facing LED flash on or off. */
-    private fun setFrontFlashActive(active: Boolean) {
-        val ctx = context ?: return
-        val manager = cameraManager ?: return
-
-        if (ActivityCompat.checkSelfPermission(ctx, android.Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (active) {
-                requestPermissions(arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
-            }
-            return
-        }
-
-        val id = getFrontFlashCameraId()
-        if (id == null) {
-            if (active) {
-                Toast.makeText(ctx, "This device has no front flash", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-
-        try {
-            manager.setTorchMode(id, active)
-            frontFlashOn = active
-        } catch (e: CameraAccessException) {
-            frontFlashOn = false
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE &&
-                grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                flashMode == "front") {
-            setFrontFlashActive(true)
-        }
-    }
-
-    companion object {
-        private const val CAMERA_PERMISSION_REQUEST_CODE = 4242
-    }
-
-    override fun onDestroyView() {
-        if (frontFlashOn) setFrontFlashActive(false)
-        super.onDestroyView()
     }
 
     override fun onBackPressed() {
