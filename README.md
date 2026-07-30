@@ -4,7 +4,6 @@ Godly Torch Torch app that can manage specific LEDs of flash and control intensi
 **NEEDS ROOT !**
 
 # Features
-------------
 1. Control specific LED of flash as torch for dual tone LED devices.
 2. Control intensity for LED through knobs.
 3. Double tap knobs to toggle LED.
