@@ -453,18 +453,8 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
 
     override fun onPause() {
         super.onPause()
-        // Safety: don't leave the front flash physically lit if the fragment
-        // goes away while it's engaged.
-        if (frontTorchEngaged) {
-            val camId = frontFlashCameraId
-            if (camId != null) {
-                try {
-                    cameraManager?.setTorchMode(camId, false)
-                } catch (e: Exception) {
-                }
-            }
-            frontTorchEngaged = false
-        }
+        // Front flash intentionally stays engaged after leaving this screen
+        // (matches how the rear torch behaves) instead of being force-stopped.
     }
 
     /**

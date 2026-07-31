@@ -17,18 +17,46 @@
 
 package com.coolappstore.evertorch.root.Settings
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings.canDrawOverlays
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Service.FloatingTorchService
+import com.coolappstore.evertorch.root.Service.TorchTileService
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
 class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Long-pressing a quick settings tile opens whichever activity in this
+        // app declares the QS_TILE_PREFERENCES intent filter (this one), with
+        // the tile's ComponentName passed as an extra. If it was the Torch
+        // tile that was long-pressed, show the floating popup instead of the
+        // normal settings screen. Switch to a fully invisible/no-animation
+        // theme first so this pass-through activity never visibly flashes
+        // open before the floating popup takes over.
+        if (intent?.action == "android.service.quicksettings.action.QS_TILE_PREFERENCES") {
+            val tileComponent: ComponentName? =
+                    intent.getParcelableExtra(Intent.EXTRA_COMPONENT_NAME)
+            if (tileComponent?.className == TorchTileService::class.java.name) {
+                setTheme(android.R.style.Theme_NoDisplay)
+                super.onCreate(savedInstanceState)
+                openTorchPopup()
+                finish()
+                overridePendingTransition(0, 0)
+                return
+            }
+        }
+
         super.onCreate(savedInstanceState)
+
         CalligraphyConfig.initDefault(CalligraphyConfig.Builder()
                 .setDefaultFontPath("fonts/sans_regular.ttf")
                 .setFontAttrId(R.attr.fontPath)
@@ -43,6 +71,23 @@ class SettingsActivity : AppCompatActivity() {
 
         fragmentManager.beginTransaction().replace(R.id.fragment_container,
                 PreferenceFragment()).commit()
+    }
+
+    private fun openTorchPopup() {
+        val canOverlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            canDrawOverlays(this)
+        else true
+
+        if (!canOverlay) {
+            val permissionIntent = Intent(
+                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName"))
+            permissionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(permissionIntent)
+            return
+        }
+
+        startService(Intent(this, FloatingTorchService::class.java))
     }
 
     override fun attachBaseContext(newBase: Context) {
