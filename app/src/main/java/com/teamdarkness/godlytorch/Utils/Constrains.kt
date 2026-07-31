@@ -43,6 +43,7 @@ object Constrains {
     val PREF_FLASH_MODE = "flashMode"
     val PREF_FRONT_WHITE_FILE_LOCATION = "frontWhiteLedFileLocation"
     val PREF_FRONT_YELLOW_FILE_LOCATION = "frontYellowLedFileLocation"
+    val PREF_FRONT_SINGLE_FILE_LOCATION = "frontSingleLedFileLocation"
     val PREF_FRONT_TOGGLE_FILE_LOCATION = "frontToggleFileLocation"
     val PREF_FRONT_BRIGHTNESS_MAX = "frontBrightnessMax"
 

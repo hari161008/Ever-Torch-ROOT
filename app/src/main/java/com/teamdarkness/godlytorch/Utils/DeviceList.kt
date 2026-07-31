@@ -204,6 +204,14 @@ object DeviceList {
                         .setWhiteLedFileLocation("led:torch_0/brightness")
                         .setToggleFileLocation("led:switch/brightness")
         )
+        deviceList.add(
+                Device().setName("Moto Z2 Play")
+                        .setDeviceId("albus")
+                        .isDualTone(true)
+                        .setYellowLedFileLocation("led:torch_0/brightness")
+                        .setWhiteLedFileLocation("led:torch_1/brightness")
+                        .setToggleFileLocation("led:switch/brightness")
+        )
         //Nexus
         deviceList.add(
                 Device().setName("Nexus 5X")

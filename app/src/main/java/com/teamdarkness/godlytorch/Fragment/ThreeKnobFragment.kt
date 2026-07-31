@@ -18,8 +18,11 @@
 package com.teamdarkness.godlytorch.Fragment
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
 import androidx.fragment.app.Fragment
@@ -38,6 +41,7 @@ import com.teamdarkness.godlytorch.Settings.SettingsActivity
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_DOUBLE_TONE_ENABLED
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FLASH_MODE
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_BRIGHTNESS_MAX
+import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_SINGLE_FILE_LOCATION
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_TOGGLE_FILE_LOCATION
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_WHITE_FILE_LOCATION
 import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_YELLOW_FILE_LOCATION
@@ -72,6 +76,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
 
     private var frontWhiteLedFileLocation = ""
     private var frontYellowLedFileLocation = ""
+    private var frontSingleLedFileLocation = ""
     private var frontToggleFileLocation = ""
     private var frontBrightnessMax = 0
 
@@ -81,6 +86,18 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
 
     private var flashMode = "rear"
     private var brightnessMax = 0
+
+    // Front flash is turned on/off the same way normal camera & flashlight apps
+    // do it: through the official Camera2 CameraManager.setTorchMode() call on
+    // whichever camera id reports a front-facing flash unit. Once it's engaged
+    // that way, the sysfs brightness files are used only to fine-tune the
+    // intensity, instead of trying to toggle the LED on/off ourselves - this is
+    // what avoids the front/rear LED mix-up some devices (e.g. Moto Z2 Play)
+    // show when the LED is engaged purely through raw sysfs writes.
+    private var cameraManager: CameraManager? = null
+    private var frontFlashCameraId: String? = null
+    private var frontFlashCameraIdChecked = false
+    private var frontTorchEngaged = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -106,6 +123,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
             // get front torch file locations (root level, same mechanism as the rear LED)
             frontWhiteLedFileLocation = prefs.getString(PREF_FRONT_WHITE_FILE_LOCATION, null) ?: ""
             frontYellowLedFileLocation = prefs.getString(PREF_FRONT_YELLOW_FILE_LOCATION, null) ?: ""
+            frontSingleLedFileLocation = prefs.getString(PREF_FRONT_SINGLE_FILE_LOCATION, null) ?: ""
             frontToggleFileLocation = prefs.getString(PREF_FRONT_TOGGLE_FILE_LOCATION, null) ?: ""
             frontBrightnessMax = prefs.getString(PREF_FRONT_BRIGHTNESS_MAX, null)?.toIntOrNull() ?: 0
 
@@ -118,7 +136,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         }
 
         setupFlashModeButtons(rearFlashButton, frontFlashButton)
-        brightnessMax = if (flashMode == "front") frontBrightnessMax else rearBrightnessMax
+        brightnessMax = rearBrightnessMax
 
         if (useKnobsUi) {
             setupClassicKnobs(view)
@@ -158,7 +176,7 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         frontFlashButton.setOnClickListener {
             controlLed(0, 0, false)
             flashMode = "front"
-            brightnessMax = frontBrightnessMax
+            brightnessMax = rearBrightnessMax
             prefs?.edit()?.putString(PREF_FLASH_MODE, "front")?.apply()
             refreshIcons("front")
         }
@@ -221,9 +239,9 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                 } else {
                     masterSlider.isEnabled = false
                     whiteOn = true
-                    whiteValue = (255 / 20) * (progress - 1)
-                    if (whiteValue > 225)
-                        whiteValue = 225
+                    whiteValue = (brightnessMax / 20) * (progress - 1)
+                    if (whiteValue > brightnessMax)
+                        whiteValue = brightnessMax
                 }
                 whiteProgress = progress
             }
@@ -253,9 +271,9 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                 } else {
                     masterSlider.isEnabled = false
                     yellowOn = true
-                    yellowValue = (255 / 20) * (progress - 1)
-                    if (yellowValue > 225)
-                        yellowValue = 225
+                    yellowValue = (brightnessMax / 20) * (progress - 1)
+                    if (yellowValue > brightnessMax)
+                        yellowValue = brightnessMax
                 }
                 yellowProgress = progress
             }
@@ -346,9 +364,9 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                     } else {
                         masterCroller.isEnabled = false
                         whiteOn = true
-                        whiteValue = (255 / 20) * (progress - 1)
-                        if (whiteValue > 225)
-                            whiteValue = 225
+                        whiteValue = (brightnessMax / 20) * (progress - 1)
+                        if (whiteValue > brightnessMax)
+                            whiteValue = brightnessMax
                     }
                     whiteProgress = progress
                 }
@@ -392,9 +410,9 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                     } else {
                         masterCroller.isEnabled = false
                         yellowOn = true
-                        yellowValue = (255 / 20) * (progress - 1)
-                        if (yellowValue > 225)
-                            yellowValue = 225
+                        yellowValue = (brightnessMax / 20) * (progress - 1)
+                        if (yellowValue > brightnessMax)
+                            yellowValue = brightnessMax
                     }
                     yellowProgress = progress
                 }
@@ -428,23 +446,60 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
         })
     }
 
-    private fun controlLed(whiteLed: Int = 0, yellowLed: Int = 0, torchState: Boolean = false) {
-        val whiteFile: String
-        val yellowFile: String
-        val toggleFile: String
-        val maxBrightness: Int
+    override fun onResume() {
+        super.onResume()
+        cameraManager = context?.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+    }
 
-        if (flashMode == "front") {
-            whiteFile = frontWhiteLedFileLocation
-            yellowFile = frontYellowLedFileLocation
-            toggleFile = frontToggleFileLocation
-            maxBrightness = frontBrightnessMax
-        } else {
-            whiteFile = whiteLedFileLocation
-            yellowFile = yellowLedFileLocation
-            toggleFile = toggleFileLocation
-            maxBrightness = rearBrightnessMax
+    override fun onPause() {
+        super.onPause()
+        // Safety: don't leave the front flash physically lit if the fragment
+        // goes away while it's engaged.
+        if (frontTorchEngaged) {
+            val camId = frontFlashCameraId
+            if (camId != null) {
+                try {
+                    cameraManager?.setTorchMode(camId, false)
+                } catch (e: Exception) {
+                }
+            }
+            frontTorchEngaged = false
         }
+    }
+
+    /**
+     * Looks up the camera id (if any) that reports itself as front-facing AND
+     * has a flash unit attached, exactly how a normal camera/flashlight app
+     * would find the front flash. Cached after the first lookup.
+     */
+    private fun ensureFrontFlashCameraId() {
+        if (frontFlashCameraIdChecked) return
+        frontFlashCameraIdChecked = true
+        val manager = cameraManager ?: return
+        try {
+            for (id in manager.cameraIdList) {
+                val characteristics = manager.getCameraCharacteristics(id)
+                val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
+                val hasFlash = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+                if (facing == CameraCharacteristics.LENS_FACING_FRONT && hasFlash) {
+                    frontFlashCameraId = id
+                    return
+                }
+            }
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun controlLed(whiteLed: Int = 0, yellowLed: Int = 0, torchState: Boolean = false) {
+        if (flashMode == "front") {
+            controlFrontLed(whiteLed, yellowLed, torchState)
+            return
+        }
+
+        val whiteFile = whiteLedFileLocation
+        val yellowFile = yellowLedFileLocation
+        val toggleFile = toggleFileLocation
+        val maxBrightness = rearBrightnessMax
 
         if (whiteFile.isEmpty() || yellowFile.isEmpty() || toggleFile.isEmpty())
             return
@@ -460,6 +515,117 @@ class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {
                 String.format(getString(R.string.cmd_echo), torch, toggleFile)
         return Utils.runCommand(command)
     }
+
+    /**
+     * Turns the front flash on/off the same way normal apps do: via the
+     * official CameraManager.setTorchMode() call on the front-facing camera's
+     * flash unit. Once engaged this way, the brightness/intensity is fine
+     * tuned by writing straight to the front LED's sysfs brightness file(s) -
+     * no toggle-file juggling needed, and no front/rear LED mix-up, since the
+     * kernel already knows this LED belongs to the front camera.
+     *
+     * If this device doesn't expose a front-facing flash unit through
+     * Camera2, we fall back to the old pure sysfs control as a best effort.
+     */
+    private fun controlFrontLed(whiteLed: Int, yellowLed: Int, torchState: Boolean) {
+        ensureFrontFlashCameraId()
+        val camId = frontFlashCameraId
+
+        if (camId == null) {
+            controlFrontLedViaSysfs(whiteLed, yellowLed, torchState)
+            return
+        }
+
+        if (torchState != frontTorchEngaged) {
+            try {
+                cameraManager?.setTorchMode(camId, torchState)
+                frontTorchEngaged = torchState
+            } catch (e: Exception) {
+                // Official API failed (camera in use, etc.) - fall back to sysfs only.
+                controlFrontLedViaSysfs(whiteLed, yellowLed, torchState)
+                return
+            }
+        }
+
+        // Once the front flash is engaged through the official camera API,
+        // this device's physical front LED responds to the SAME sysfs nodes
+        // normally used for the rear torch (confirmed: using rear mode's
+        // sliders while the front flash is on from a 3rd-party app adjusts
+        // the front flash's intensity correctly). So intensity is driven
+        // through those rear LED files here, not the separate front files.
+        if (torchState) {
+            // Give the kernel a brief moment to engage the front flash through
+            // the official path before we push a brightness value onto the
+            // shared LED node.
+            Handler().postDelayed({
+                adjustEngagedFrontBrightness(whiteLed, yellowLed, true)
+            }, 80)
+        } else {
+            adjustEngagedFrontBrightness(0, 0, false)
+        }
+    }
+
+    /**
+     * Writes the intensity to the rear torch's own sysfs nodes (white/yellow/
+     * toggle), which is what actually drives the physical front LED once the
+     * front flash has been engaged through the official Camera2 torch call.
+     */
+    private fun adjustEngagedFrontBrightness(whiteLed: Int, yellowLed: Int, torchState: Boolean) {
+        if (whiteLedFileLocation.isEmpty() || yellowLedFileLocation.isEmpty() || toggleFileLocation.isEmpty())
+            return
+
+        val torch = if (torchState) rearBrightnessMax else 0
+
+        val command: String = String.format(getString(R.string.cmd_echo), "0", toggleFileLocation) +
+                getString(R.string.cmd_sleep) +
+                String.format(getString(R.string.cmd_echo), whiteLed, whiteLedFileLocation) +
+                String.format(getString(R.string.cmd_echo), yellowLed, yellowLedFileLocation) +
+                String.format(getString(R.string.cmd_echo), torch, toggleFileLocation)
+        Utils.runCommand(command)
+    }
+
+    /**
+     * Fallback used only when this device doesn't expose a front-facing flash
+     * unit through Camera2, so the official on/off switch isn't available.
+     * Drives the sysfs nodes directly, supporting dual-tone, single-tone, and
+     * toggle-only front flash layouts.
+     */
+    private fun controlFrontLedViaSysfs(whiteLed: Int, yellowLed: Int, torchState: Boolean) {
+        val maxBrightness = frontBrightnessMax
+        val torch = if (torchState) maxBrightness else 0
+
+        when {
+            frontWhiteLedFileLocation.isNotEmpty() && frontYellowLedFileLocation.isNotEmpty() && frontToggleFileLocation.isNotEmpty() -> {
+                val command = String.format(getString(R.string.cmd_echo), "0", frontToggleFileLocation) +
+                        getString(R.string.cmd_sleep) +
+                        String.format(getString(R.string.cmd_echo), whiteLed, frontWhiteLedFileLocation) +
+                        String.format(getString(R.string.cmd_echo), yellowLed, frontYellowLedFileLocation) +
+                        String.format(getString(R.string.cmd_echo), torch, frontToggleFileLocation)
+                Utils.runCommand(command)
+            }
+
+            frontSingleLedFileLocation.isNotEmpty() && frontToggleFileLocation.isNotEmpty() -> {
+                val brightnessValue = if (torchState) maxOf(whiteLed, yellowLed).let { if (it > 0) it else maxBrightness } else 0
+                val command = String.format(getString(R.string.cmd_echo), "0", frontToggleFileLocation) +
+                        getString(R.string.cmd_sleep) +
+                        String.format(getString(R.string.cmd_echo), brightnessValue, frontSingleLedFileLocation) +
+                        String.format(getString(R.string.cmd_echo), torch, frontToggleFileLocation)
+                Utils.runCommand(command)
+            }
+
+            frontSingleLedFileLocation.isNotEmpty() -> {
+                val brightnessValue = if (torchState) maxOf(whiteLed, yellowLed).let { if (it > 0) it else maxBrightness } else 0
+                Utils.runCommand(String.format(getString(R.string.cmd_echo), brightnessValue, frontSingleLedFileLocation))
+            }
+
+            frontToggleFileLocation.isNotEmpty() -> {
+                Utils.runCommand(String.format(getString(R.string.cmd_echo), torch, frontToggleFileLocation))
+            }
+
+            else -> return
+        }
+    }
+
 
     override fun onBackPressed() {
         if (doubleBackToExitPressedOnce) {
