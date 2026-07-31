@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Utils
+package com.coolappstore.evertorch.root.Utils
 
 import android.content.Context
 import android.os.Build
@@ -23,13 +23,13 @@ import androidx.annotation.NonNull
 import android.text.Html
 import android.text.Spanned
 import android.util.Log
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_BRIGHTNESS_MAX
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_IS_DUAL_TONE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SELECTED_DEVICE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SINGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_WHITE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_BRIGHTNESS_MAX
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_IS_DUAL_TONE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SELECTED_DEVICE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SINGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_WHITE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
 import eu.chainfire.libsuperuser.Shell
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
@@ -40,7 +40,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_USE_INTERNAL_BUSYBOX
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_USE_INTERNAL_BUSYBOX
 import github.nisrulz.easydeviceinfo.base.EasyDeviceMod
 
 

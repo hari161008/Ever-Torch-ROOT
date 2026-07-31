@@ -15,36 +15,33 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Service
+package com.coolappstore.evertorch.root.Service
 
 import android.annotation.TargetApi
 import android.service.quicksettings.TileService
 import android.os.Build
 import android.service.quicksettings.Tile
-import com.teamdarkness.godlytorch.Utils.Utils.askRoot
-import com.teamdarkness.godlytorch.Dialog.TileDialog
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Utils.Utils.runCommand
-import com.google.firebase.analytics.FirebaseAnalytics
-import android.os.Bundle
+import com.coolappstore.evertorch.root.Utils.Utils.askRoot
+import com.coolappstore.evertorch.root.Dialog.TileDialog
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Utils.Utils.runCommand
 import android.util.Log
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SELECTED_DEVICE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SINGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TILE_MASTER_NAME
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TILE_MASTER_ON
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TILE_MASTER_STATE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TILE_WHITE_ON
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TILE_YELLOW_ON
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_WHITE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Utils.readDevice
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SELECTED_DEVICE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SINGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TILE_MASTER_NAME
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TILE_MASTER_ON
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TILE_MASTER_STATE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TILE_WHITE_ON
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TILE_YELLOW_ON
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_WHITE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Utils.readDevice
 import org.jetbrains.anko.defaultSharedPreferences
 
 @TargetApi(Build.VERSION_CODES.N)
 class MasterTileService : TileService() {
 
-    private lateinit var mFirebaseAnalytics: FirebaseAnalytics
     private val TILE_STATUS = "masterTileStatus"
 
     override fun onStartListening() {
@@ -254,13 +251,6 @@ class MasterTileService : TileService() {
                             tile.label = "$torchVal%"
                             tile.state = Tile.STATE_ACTIVE
                             tile.updateTile()
-
-                            // Log tile click to analytics
-                            val bundle = Bundle()
-                            bundle.putString("tile_type", "master")
-                            bundle.putString("device_type", "dual_tone")
-                            mFirebaseAnalytics = FirebaseAnalytics.getInstance(baseContext)
-                            mFirebaseAnalytics.logEvent("tile_click", bundle)
                         }
                         2 -> {
                             var torchVal: Int = (100 / (intensitySteps.toInt() + 1)) * 3

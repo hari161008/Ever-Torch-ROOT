@@ -19,7 +19,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <PreferenceCategory android:title="General" >
-        <com.teamdarkness.godlytorch.Settings.SelectDevicePreference
+        <com.coolappstore.evertorch.root.Settings.SelectDevicePreference
             android:title="My device"
             android:dialogTitle="Change Device"
             android:key="selectedDevice"/>

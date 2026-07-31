@@ -15,21 +15,21 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Activity
+package com.coolappstore.evertorch.root.Activity
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import com.teamdarkness.godlytorch.Fragment.IncompatibleFragment
-import com.teamdarkness.godlytorch.Fragment.LaunchFragment
-import com.teamdarkness.godlytorch.Fragment.SingleKnobFragment
-import com.teamdarkness.godlytorch.Fragment.ThreeKnobFragment
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_IS_DUAL_TONE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SELECTED_DEVICE
-import com.teamdarkness.godlytorch.Utils.OnFragmentBackPressListener
-import com.teamdarkness.godlytorch.Utils.Utils
+import com.coolappstore.evertorch.root.Fragment.IncompatibleFragment
+import com.coolappstore.evertorch.root.Fragment.LaunchFragment
+import com.coolappstore.evertorch.root.Fragment.SingleKnobFragment
+import com.coolappstore.evertorch.root.Fragment.ThreeKnobFragment
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_IS_DUAL_TONE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SELECTED_DEVICE
+import com.coolappstore.evertorch.root.Utils.OnFragmentBackPressListener
+import com.coolappstore.evertorch.root.Utils.Utils
 import org.jetbrains.anko.defaultSharedPreferences
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper

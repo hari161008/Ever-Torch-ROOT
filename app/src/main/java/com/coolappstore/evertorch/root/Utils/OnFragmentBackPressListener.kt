@@ -15,13 +15,9 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch
+package com.coolappstore.evertorch.root.Utils
 
-import android.app.Application
+interface OnFragmentBackPressListener {
 
-class MainApplication : Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-    }
+    fun onBackPressed()
 }

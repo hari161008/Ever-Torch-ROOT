@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Utils
+package com.coolappstore.evertorch.root.Utils
 
 object Constrains {
 

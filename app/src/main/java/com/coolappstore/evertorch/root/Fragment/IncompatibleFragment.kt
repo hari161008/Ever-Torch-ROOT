@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Fragment
+package com.coolappstore.evertorch.root.Fragment
 
 
 import android.app.AlertDialog
@@ -30,23 +30,23 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Utils.OnFragmentBackPressListener
-import com.teamdarkness.godlytorch.Utils.Utils.fromHtml
-import com.teamdarkness.godlytorch.Utils.Utils.getDeviceId
-import com.teamdarkness.godlytorch.Utils.Utils.getDeviceName
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Utils.OnFragmentBackPressListener
+import com.coolappstore.evertorch.root.Utils.Utils.fromHtml
+import com.coolappstore.evertorch.root.Utils.Utils.getDeviceId
+import com.coolappstore.evertorch.root.Utils.Utils.getDeviceName
 import android.content.Intent
 import android.net.Uri
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.snackbar.Snackbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.teamdarkness.godlytorch.Settings.DeviceListAdapter
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_IS_DUAL_TONE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SELECTED_DEVICE
-import com.teamdarkness.godlytorch.Utils.Utils
-import com.teamdarkness.godlytorch.Utils.Utils.getDeviceNameById
-import com.teamdarkness.godlytorch.Utils.Utils.getSystemProp
+import com.coolappstore.evertorch.root.Settings.DeviceListAdapter
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_IS_DUAL_TONE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SELECTED_DEVICE
+import com.coolappstore.evertorch.root.Utils.Utils
+import com.coolappstore.evertorch.root.Utils.Utils.getDeviceNameById
+import com.coolappstore.evertorch.root.Utils.Utils.getSystemProp
 import org.jetbrains.anko.defaultSharedPreferences
 
 

@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Settings
+package com.coolappstore.evertorch.root.Settings
 
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
@@ -25,13 +25,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Settings.DeviceListAdapter.DeviceHolder
-import com.teamdarkness.godlytorch.Utils.Constrains
-import com.teamdarkness.godlytorch.Utils.Device
-import com.teamdarkness.godlytorch.Utils.DeviceList
-import com.teamdarkness.godlytorch.Utils.Utils
-import com.teamdarkness.godlytorch.Utils.Utils.getDevicePositionById
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Settings.DeviceListAdapter.DeviceHolder
+import com.coolappstore.evertorch.root.Utils.Constrains
+import com.coolappstore.evertorch.root.Utils.Device
+import com.coolappstore.evertorch.root.Utils.DeviceList
+import com.coolappstore.evertorch.root.Utils.Utils
+import com.coolappstore.evertorch.root.Utils.Utils.getDevicePositionById
 import org.jetbrains.anko.defaultSharedPreferences
 
 class DeviceListAdapter(val context: Context?) : RecyclerView.Adapter<DeviceHolder>() {

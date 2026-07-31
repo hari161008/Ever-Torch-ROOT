@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Fragment
+package com.coolappstore.evertorch.root.Fragment
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -31,12 +31,12 @@ import android.widget.ImageButton
 import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
 import com.sdsmdg.harjot.crollerTest.OnCrollerChangeListener
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.R.layout
-import com.teamdarkness.godlytorch.Settings.SettingsActivity
-import com.teamdarkness.godlytorch.Utils.Constrains
-import com.teamdarkness.godlytorch.Utils.OnFragmentBackPressListener
-import com.teamdarkness.godlytorch.Utils.Utils
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.R.layout
+import com.coolappstore.evertorch.root.Settings.SettingsActivity
+import com.coolappstore.evertorch.root.Utils.Constrains
+import com.coolappstore.evertorch.root.Utils.OnFragmentBackPressListener
+import com.coolappstore.evertorch.root.Utils.Utils
 import org.jetbrains.anko.defaultSharedPreferences
 
 class SingleKnobFragment : Fragment(), OnFragmentBackPressListener {

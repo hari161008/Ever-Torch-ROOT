@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Fragment
+package com.coolappstore.evertorch.root.Fragment
 
 import android.app.ProgressDialog
 import android.content.Context
@@ -36,21 +36,21 @@ import com.google.android.material.slider.Slider
 import com.sdsmdg.harjot.crollerTest.Croller
 import com.sdsmdg.harjot.crollerTest.OnCrollerChangeListener
 
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Settings.SettingsActivity
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_DOUBLE_TONE_ENABLED
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FLASH_MODE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_BRIGHTNESS_MAX
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_SINGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_TOGGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_WHITE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_FRONT_YELLOW_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_KNOBS_UI
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_WHITE_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
-import com.teamdarkness.godlytorch.Utils.OnFragmentBackPressListener
-import com.teamdarkness.godlytorch.Utils.Utils
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Settings.SettingsActivity
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_DOUBLE_TONE_ENABLED
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FLASH_MODE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FRONT_BRIGHTNESS_MAX
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FRONT_SINGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FRONT_TOGGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FRONT_WHITE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_FRONT_YELLOW_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_KNOBS_UI
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_TOGGLE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_WHITE_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_YELLOW_FILE_LOCATION
+import com.coolappstore.evertorch.root.Utils.OnFragmentBackPressListener
+import com.coolappstore.evertorch.root.Utils.Utils
 import org.jetbrains.anko.defaultSharedPreferences
 
 class ThreeKnobFragment : Fragment(), OnFragmentBackPressListener {

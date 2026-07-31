@@ -16,7 +16,7 @@
   -->
 
 <resources>
-    <string name="app_name">Godly Torch</string>
+    <string name="app_name">Ever Torch [ROOT]</string>
 
     <string name="cmd_sleep">sleep 0.01;</string>
     <string name="cmd_echo">echo %1$s > /sys/class/leds/%2$s;</string>

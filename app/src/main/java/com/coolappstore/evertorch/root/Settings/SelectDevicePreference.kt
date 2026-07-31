@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Settings
+package com.coolappstore.evertorch.root.Settings
 
 import android.content.Context
 import android.preference.DialogPreference
@@ -23,9 +23,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.util.AttributeSet
 import android.view.View
-import com.teamdarkness.godlytorch.Utils.Device
-import com.teamdarkness.godlytorch.Utils.DeviceList
-import com.teamdarkness.godlytorch.Utils.Utils .getDevicePositionById
+import com.coolappstore.evertorch.root.Utils.Device
+import com.coolappstore.evertorch.root.Utils.DeviceList
+import com.coolappstore.evertorch.root.Utils.Utils .getDevicePositionById
 
 class SelectDevicePreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs) {
 

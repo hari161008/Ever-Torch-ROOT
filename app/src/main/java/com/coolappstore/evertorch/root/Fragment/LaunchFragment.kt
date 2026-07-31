@@ -15,7 +15,7 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Fragment
+package com.coolappstore.evertorch.root.Fragment
 
 
 import android.os.Bundle
@@ -27,11 +27,11 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 
-import com.teamdarkness.godlytorch.R
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_IS_DUAL_TONE
-import com.teamdarkness.godlytorch.Utils.Constrains.PREF_SELECTED_DEVICE
-import com.teamdarkness.godlytorch.Utils.Utils
-import com.teamdarkness.godlytorch.Utils.Utils.askRoot
+import com.coolappstore.evertorch.root.R
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_IS_DUAL_TONE
+import com.coolappstore.evertorch.root.Utils.Constrains.PREF_SELECTED_DEVICE
+import com.coolappstore.evertorch.root.Utils.Utils
+import com.coolappstore.evertorch.root.Utils.Utils.askRoot
 import org.jetbrains.anko.defaultSharedPreferences
 
 class LaunchFragment : Fragment() {

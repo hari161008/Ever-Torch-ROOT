@@ -15,20 +15,13 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Dialog
+package com.coolappstore.evertorch.root
 
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
+import android.app.Application
 
-object TileDialog {
-    fun getDialog(context: Context, title: String, message: String): AlertDialog {
+class MainApplication : Application() {
 
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle(title)
-        builder.setMessage(message)
-        builder.setPositiveButton("OK.") { dialogInterface, _ -> dialogInterface.dismiss() }
-
-        return builder.create()
+    override fun onCreate() {
+        super.onCreate()
     }
 }

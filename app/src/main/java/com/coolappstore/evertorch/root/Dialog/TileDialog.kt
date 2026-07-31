@@ -15,9 +15,20 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Utils
+package com.coolappstore.evertorch.root.Dialog
 
-interface OnFragmentBackPressListener {
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 
-    fun onBackPressed()
+object TileDialog {
+    fun getDialog(context: Context, title: String, message: String): AlertDialog {
+
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle(title)
+        builder.setMessage(message)
+        builder.setPositiveButton("OK.") { dialogInterface, _ -> dialogInterface.dismiss() }
+
+        return builder.create()
+    }
 }

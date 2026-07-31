@@ -15,15 +15,15 @@
  *     along with Godly Torch.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.teamdarkness.godlytorch.Settings
+package com.coolappstore.evertorch.root.Settings
 
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.preference.PreferenceFragment
-import com.teamdarkness.godlytorch.R
+import com.coolappstore.evertorch.root.R
 import android.preference.PreferenceManager
-import com.teamdarkness.godlytorch.Utils.Utils.getDeviceNameById
+import com.coolappstore.evertorch.root.Utils.Utils.getDeviceNameById
 
 
 class PreferenceFragment : PreferenceFragment(), OnSharedPreferenceChangeListener {
